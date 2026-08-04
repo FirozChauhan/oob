@@ -26,9 +26,11 @@ const RESOURCE_TYPE = { image: "image", video: "video", audio: "video" };
 function uploadBuffer(buffer, publicId, mediaType) {
   return new Promise((resolve, reject) => {
     const resourceType = RESOURCE_TYPE[mediaType] || "auto";
+    // public_id must not include the file format/extension.
+    const cleanPublicId = publicId.replace(/\.[^.]+$/, "");
     const stream = cloudinary.uploader.upload_stream(
       {
-        public_id: publicId,
+        public_id: cleanPublicId,
         resource_type: resourceType,
         folder: "oob",
         overwrite: true,

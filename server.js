@@ -65,9 +65,19 @@ app.prepare().then(async () => {
           let cloudinaryId = null;
           if (cloudinaryConfigured) {
             // Store in Cloudinary — no local disk, survives restarts/redeploys.
-            const up = await uploadBuffer(buffer, uniqueName, mediaType);
-            url = up.url;
-            cloudinaryId = up.publicId;
+            try {
+              const up = await uploadBuffer(buffer, uniqueName, mediaType);
+              url = up.url;
+              cloudinaryId = up.publicId;
+            } catch (cErr) {
+              // If Cloudinary fails (bad creds, network, rate-limit…), fall back
+              // to disk so the upload still succeeds instead of erroring out.
+              console.error("[upload] Cloudinary failed, falling back to disk:", cErr.message);
+              const uploadDir = path.join(process.cwd(), "public", "uploads");
+              if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+              fs.writeFileSync(path.join(uploadDir, uniqueName), buffer);
+              url = `/uploads/${uniqueName}`;
+            }
           } else {
             // Fallback: write to local disk (original behaviour).
             const uploadDir = path.join(process.cwd(), "public", "uploads");

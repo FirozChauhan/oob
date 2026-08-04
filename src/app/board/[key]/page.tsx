@@ -217,12 +217,18 @@ export default function BoardPage() {
           uploadedBy: userName || "anonymous",
         }),
       });
-      if (!response.ok) throw new Error("Upload failed");
-      const data = await response.json();
-      if (data.success && data.mediaItem) {
+      if (!response.ok && response.status === 0) throw new Error("Network error");
+      let data: any = null;
+      try {
+        data = await response.json();
+      } catch {
+        data = null;
+      }
+      if (!response.ok) throw new Error(data?.error || "Upload failed");
+      if (data && data.success && data.mediaItem) {
         handleUploadComplete(data.mediaItem);
       } else {
-        throw new Error(data.error || "Upload failed");
+        throw new Error(data?.error || "Upload failed");
       }
     } catch (err: any) {
       setUploadError(err.message || "Upload failed. Please try again.");
