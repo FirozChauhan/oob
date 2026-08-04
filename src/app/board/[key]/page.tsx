@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { useSocket } from "@/app/providers/SocketProvider";
 import { useAuth, getFriendlyAuthError } from "@/app/providers/AuthProvider";
@@ -695,6 +696,7 @@ function MediaCard({
   const [dragging, setDragging] = useState(false);
   const [progress, setProgress] = useState(0);
   const [cardWidth, setCardWidth] = useState(280);
+  const [enlarged, setEnlarged] = useState(false);
   const drag = useRef<{ pointerId: number; sx: number; sy: number; px: number; py: number; pw: number; ph: number } | null>(null);
   const didDrag = useRef(false);
 
@@ -880,16 +882,70 @@ function MediaCard({
         </div>
       )}
 
-      <button
-        onClick={() => onDelete(media.id)}
-        className="absolute top-1.5 right-1.5 p-1 bg-black/60 text-white/90 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
-        title="Delete"
-        aria-label="Delete"
-      >
-        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+      {/* Card toolbar: enlarge (video/image) + delete */}
+      <div className="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+        {(media.type === "video" || media.type === "image") && (
+          <button
+            onClick={() => setEnlarged(true)}
+            className="p-1 bg-black/60 text-white/90 hover:text-white"
+            title="Enlarge"
+            aria-label="Enlarge"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9V6.75A2.25 2.25 0 0 1 6 4.5h2.25M3.75 15v2.25A2.25 2.25 0 0 0 6 19.5h2.25M15 4.5h2.25A2.25 2.25 0 0 1 19.5 6.75V9m0 6v2.25A2.25 2.25 0 0 1 17.25 19.5H15" />
+            </svg>
+          </button>
+        )}
+        <button
+          onClick={() => onDelete(media.id)}
+          className="p-1 bg-black/60 text-white/90 hover:text-red-400"
+          title="Delete"
+          aria-label="Delete"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Enlarged fullscreen lightbox (rendered via portal so it covers the viewport) */}
+      {enlarged &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-6"
+            onClick={() => setEnlarged(false)}
+          >
+            <button
+              onClick={() => setEnlarged(false)}
+              className="absolute top-4 right-4 p-2 bg-white text-black hover:bg-[#d9d9d9]"
+              title="Close"
+              aria-label="Close"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            {media.type === "video" ? (
+              <video
+                key={media.url}
+                src={media.url}
+                controls
+                autoPlay
+                playsInline
+                className="max-w-full max-h-full object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <img
+                src={media.url}
+                alt={media.name}
+                className="max-w-full max-h-full object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
+            )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
