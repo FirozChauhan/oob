@@ -18,6 +18,17 @@ const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
 const port = process.env.PORT || 3000;
 
+// Content types for serving uploaded files directly from disk.
+const CONTENT_TYPES = {
+  ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
+  ".gif": "image/gif", ".webp": "image/webp", ".svg": "image/svg+xml",
+  ".bmp": "image/bmp", ".avif": "image/avif",
+  ".mp4": "video/mp4", ".webm": "video/webm", ".ogg": "video/ogg",
+  ".mov": "video/quicktime", ".avi": "video/x-msvideo", ".mkv": "video/x-matroska",
+  ".mp3": "audio/mpeg", ".wav": "audio/wav", ".aac": "audio/aac",
+  ".flac": "audio/flac", ".m4a": "audio/mp4", ".wma": "audio/x-ms-wma",
+};
+
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
@@ -103,6 +114,23 @@ app.prepare().then(async () => {
           res.end(JSON.stringify({ success: false, error: err.message }));
         }
       });
+      return;
+    }
+
+    // Serve uploaded files directly from disk. Next.js in production only
+    // serves public/ assets that existed at build time, so runtime uploads
+    // must be served here explicitly or they would 404.
+    if (parsedUrl.pathname && parsedUrl.pathname.startsWith("/uploads/")) {
+      const safeName = path.basename(decodeURIComponent(parsedUrl.pathname));
+      const filePath = path.join(process.cwd(), "public", "uploads", safeName);
+      if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+        const type = CONTENT_TYPES[path.extname(filePath).toLowerCase()] || "application/octet-stream";
+        res.writeHead(200, { "Content-Type": type, "Cache-Control": "public, max-age=3600" });
+        fs.createReadStream(filePath).pipe(res);
+      } else {
+        res.writeHead(404, { "Content-Type": "text/plain" });
+        res.end("Not found");
+      }
       return;
     }
 
