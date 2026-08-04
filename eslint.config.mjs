@@ -12,6 +12,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Custom Node server files — plain CommonJS, not part of the Next.js bundle.
+    "server.js",
+    "db.js",
+    "cloudinary.js",
+    "firebaseAdmin.js",
   ]),
 ]);
 

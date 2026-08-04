@@ -10,6 +10,13 @@ import { getMediaType } from "@/lib/types";
 import UserList from "./UserList";
 import ChatPanel from "./ChatPanel";
 
+// Shape of the /api/upload response (server echoes the created media item).
+interface UploadResponse {
+  success: boolean;
+  mediaItem?: MediaItem;
+  error?: string;
+}
+
 export default function BoardPage() {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -37,7 +44,6 @@ export default function BoardPage() {
   const [isJoined, setIsJoined] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [copied, setCopied] = useState(false);
-  const [showChat, setShowChat] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -45,9 +51,8 @@ export default function BoardPage() {
   const uploadFileRef = useRef<(file: File) => Promise<void>>(async () => {});
   const [activeMediaType, setActiveMediaType] = useState<"all" | "image" | "video" | "audio">("all");
 
-  // Listen for room events. This effect runs once per socket and never
-  // tears down after joining, so live updates (new joins, new media…) keep
-  // arriving without needing a reload.
+  // Room event listeners — run once per socket, never torn down after joining,
+  // so live updates keep arriving without a reload.
   useEffect(() => {
     if (!socket || !isConnected) return;
 
@@ -109,8 +114,8 @@ export default function BoardPage() {
     };
   }, [socket, isConnected]);
 
-  // The admin creates a fresh room; everyone else joins an existing one.
-  // Emits only once — the isJoined guard stops re-emits after the room is ready.
+  // Create a fresh room (?create=1) or join an existing one. The isJoined
+  // guard means we only emit once.
   useEffect(() => {
     if (!socket || !isConnected || isJoined) return;
     // Wait for auth to resolve before joining (when Firebase auth is on)
@@ -216,7 +221,7 @@ export default function BoardPage() {
       setUploadProgress(40);
 
       // 2) POST via XHR so we get real upload progress — 40–100%
-      const uploaded = await new Promise<{ ok: boolean; data: any }>((resolve, reject) => {
+      const uploaded = await new Promise<{ ok: boolean; data: UploadResponse | null }>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open("POST", "/api/upload");
         xhr.setRequestHeader("Content-Type", "application/json");
@@ -227,9 +232,9 @@ export default function BoardPage() {
           }
         };
         xhr.onload = () => {
-          let data: any = null;
+          let data: UploadResponse | null = null;
           try {
-            data = JSON.parse(xhr.responseText);
+            data = JSON.parse(xhr.responseText) as UploadResponse;
           } catch {
             data = null;
           }
@@ -252,8 +257,8 @@ export default function BoardPage() {
       }
       setUploadProgress(100);
       handleUploadComplete(uploaded.data.mediaItem);
-    } catch (err: any) {
-      setUploadError(err.message || "Upload failed. Please try again.");
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed. Please try again.");
     } finally {
       // Keep the full bar visible briefly, then reset for the next upload.
       setTimeout(() => {
@@ -263,7 +268,9 @@ export default function BoardPage() {
     }
   };
   // Keep a live reference so the paste listener always uses the latest uploadFile.
-  uploadFileRef.current = uploadFile;
+  useEffect(() => {
+    uploadFileRef.current = uploadFile;
+  });
 
   // Paste-to-upload: paste an image (e.g. copied from Google) anywhere to upload it.
   useEffect(() => {
@@ -309,8 +316,7 @@ export default function BoardPage() {
     [socket, roomKey]
   );
 
-  // Bring-to-front layers: every card gets a monotonically increasing z-index
-  // when picked up, so whatever you drag stays on top of the others.
+  // Monotonic z-index so whatever you pick up stays on top of the others.
   const zCounter = useRef(100);
   const [zMap, setZMap] = useState<Record<string, number>>({});
   const bringToFront = useCallback((mediaId: string) => {
@@ -507,7 +513,7 @@ export default function BoardPage() {
 
           {/* User avatars */}
           <div className="flex -space-x-2">
-            {users.slice(0, 5).map((user, i) => (
+            {users.slice(0, 5).map((user) => (
               <div
                 key={user.id}
                 className="w-7 h-7 rounded-full bg-gradient-to-br from-[#ffffff] to-[#e0e0e0] flex items-center justify-center text-[10px] font-bold text-black border-2 border-[#131313] overflow-hidden"
@@ -654,6 +660,7 @@ export default function BoardPage() {
                 <MediaCard
                   key={media.id}
                   media={media}
+                  roomKey={roomKey}
                   onDelete={handleDeleteMedia}
                   onMove={handleMoveMedia}
                   onBringToFront={bringToFront}
@@ -691,12 +698,14 @@ function clamp(value: number, min: number, max: number) {
 
 function MediaCard({
   media,
+  roomKey,
   onDelete,
   onMove,
   zIndex,
   onBringToFront,
 }: {
   media: MediaItem;
+  roomKey: string;
   onDelete: (id: string) => void;
   onMove: (id: string, x: number, y: number) => void;
   zIndex: number;
@@ -705,6 +714,7 @@ function MediaCard({
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const { socket } = useSocket();
   const [isPlaying, setIsPlaying] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -723,10 +733,37 @@ function MediaCard({
     if (!el) return;
     if (el.paused) {
       el.play().catch(() => {});
+      socket?.emit("media-play", { roomKey, mediaId: media.id, currentTime: el.currentTime });
     } else {
       el.pause();
+      socket?.emit("media-pause", { roomKey, mediaId: media.id, currentTime: el.currentTime });
     }
   };
+
+  // Mirror playback actions from other users in the room onto this card.
+  // The server echoes to everyone except the sender, so no loops here.
+  useEffect(() => {
+    if (!socket) return;
+    const apply = (action: "play" | "pause" | "seek") => (payload: { mediaId: string; currentTime?: number }) => {
+      if (payload.mediaId !== media.id) return;
+      const el = media.type === "audio" ? audioRef.current : videoRef.current;
+      if (!el) return;
+      if (typeof payload.currentTime === "number") el.currentTime = payload.currentTime;
+      if (action === "play") el.play().catch(() => {});
+      if (action === "pause") el.pause();
+    };
+    const onPlay = apply("play");
+    const onPause = apply("pause");
+    const onSeek = apply("seek");
+    socket.on("media-play", onPlay);
+    socket.on("media-pause", onPause);
+    socket.on("media-seek", onSeek);
+    return () => {
+      socket.off("media-play", onPlay);
+      socket.off("media-pause", onPause);
+      socket.off("media-seek", onSeek);
+    };
+  }, [socket, media.id, media.type]);
 
   const handleTimeUpdate = (e: React.SyntheticEvent<HTMLMediaElement>) => {
     const el = e.currentTarget;
@@ -749,10 +786,11 @@ function MediaCard({
     const pct = clamp(((clientX - rect.left) / rect.width) * 100, 0, 100);
     el.currentTime = (pct / 100) * el.duration;
     setProgress(pct);
+    socket?.emit("media-seek", { roomKey, mediaId: media.id, currentTime: el.currentTime });
   };
 
-  // Click-to-play lives on the card root, because pointer-capture sends the
-  // resulting click event to the captured element (the card), not the media.
+  // Click-to-play lives on the card root — pointer capture retargets the click
+  // to the card, so decide here what's actually under the pointer.
   const handleCardClick = (e: React.MouseEvent) => {
     if (media.type !== "video" && media.type !== "audio") return;
     if (didDrag.current) {
@@ -939,6 +977,8 @@ function MediaCard({
               </svg>
             </button>
             {media.type === "video" ? (
+              // Enlarged view is personal: we forward its native-control actions to
+              // the room, but it doesn't mirror remote playback back.
               <video
                 key={media.url}
                 src={media.url}
@@ -947,6 +987,9 @@ function MediaCard({
                 playsInline
                 className="max-w-full max-h-full object-contain"
                 onClick={(e) => e.stopPropagation()}
+                onPlay={(e) => socket?.emit("media-play", { roomKey, mediaId: media.id, currentTime: e.currentTarget.currentTime })}
+                onPause={(e) => socket?.emit("media-pause", { roomKey, mediaId: media.id, currentTime: e.currentTarget.currentTime })}
+                onSeeked={(e) => socket?.emit("media-seek", { roomKey, mediaId: media.id, currentTime: e.currentTarget.currentTime })}
               />
             ) : (
               <img

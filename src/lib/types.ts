@@ -39,7 +39,8 @@ export function getMediaType(fileName: string): MediaItem["type"] {
   if (["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp"].includes(ext || "")) {
     return "image";
   }
-  if (["mp4", "webm", "ogg", "mov", "avi", "mkv"].includes(ext || "")) {
+  // Note: .ogg stays in audio — Ogg Vorbis is far more common than Theora video.
+  if (["mp4", "webm", "mov", "avi", "mkv"].includes(ext || "")) {
     return "video";
   }
   if (["mp3", "wav", "ogg", "aac", "flac", "m4a", "wma"].includes(ext || "")) {

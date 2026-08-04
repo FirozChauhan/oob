@@ -1,6 +1,5 @@
-// Load env vars (.env.local first, then .env) so this custom Node server sees
-// CLOUDINARY_*, DATABASE_URL, etc. Next.js loads these for the app bundle, but
-// this plain Node process needs dotenv to see them too.
+// Next.js loads env vars for the app bundle, but this plain Node process needs
+// dotenv to see them too (CLOUDINARY_*, DATABASE_URL, Firebase…).
 require("dotenv").config({ path: ".env.local" });
 require("dotenv").config();
 
@@ -23,9 +22,9 @@ const CONTENT_TYPES = {
   ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
   ".gif": "image/gif", ".webp": "image/webp", ".svg": "image/svg+xml",
   ".bmp": "image/bmp", ".avif": "image/avif",
-  ".mp4": "video/mp4", ".webm": "video/webm", ".ogg": "video/ogg",
+  ".mp4": "video/mp4", ".webm": "video/webm",
   ".mov": "video/quicktime", ".avi": "video/x-msvideo", ".mkv": "video/x-matroska",
-  ".mp3": "audio/mpeg", ".wav": "audio/wav", ".aac": "audio/aac",
+  ".mp3": "audio/mpeg", ".ogg": "audio/ogg", ".wav": "audio/wav", ".aac": "audio/aac",
   ".flac": "audio/flac", ".m4a": "audio/mp4", ".wma": "audio/x-ms-wma",
 };
 
@@ -55,17 +54,34 @@ app.prepare().then(async () => {
     // Handle file uploads
     if (req.method === "POST" && parsedUrl.pathname === "/api/upload") {
       let body = "";
+      let tooLarge = false;
+      // The client caps files at 50MB, but the server must enforce it too —
+      // base64 inflates the payload ~33%, so allow ~70MB of raw body.
+      const MAX_BODY = 70 * 1024 * 1024;
       req.on("data", (chunk) => {
         body += chunk.toString();
+        if (!tooLarge && body.length > MAX_BODY) {
+          // Reject immediately and stop buffering — no point holding 70MB+
+          // in memory just to refuse it.
+          tooLarge = true;
+          res.writeHead(413, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ success: false, error: "File too large. Maximum size is 50MB." }));
+          req.destroy();
+        }
       });
       req.on("end", async () => {
+        if (tooLarge || res.headersSent) return;
         try {
           const { fileName, fileData, roomKey, mediaType, uploadedBy } = JSON.parse(body);
           const buffer = Buffer.from(fileData, "base64");
+          if (buffer.length > 50 * 1024 * 1024) {
+            res.writeHead(413, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ success: false, error: "File too large. Maximum size is 50MB." }));
+            return;
+          }
 
-          // Sanitize the filename so the returned URL is always safe. Original
-          // names often contain spaces, #, ?, %, @ or emoji — those break the
-          // <video>/<img> src URL (a # is a fragment delimiter, etc.).
+          // Sanitize the filename — spaces, #, ? and emoji in names would break
+          // the <video>/<img> src URL (a # is a fragment delimiter).
           const namedot = fileName.lastIndexOf(".");
           const ext = namedot > 0 ? fileName.slice(namedot + 1).replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) : "";
           const base = namedot > 0 ? fileName.slice(0, namedot) : fileName;
@@ -147,9 +163,8 @@ app.prepare().then(async () => {
   io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
 
-    // Client sends its Firebase ID token so the server can cryptographically
-    // verify the Google identity. When Firebase Admin isn't configured, this is
-    // a no-op and the server trusts the client-provided identity instead.
+    // Verify the client's Firebase ID token. Without Firebase Admin configured
+    // this is a no-op and we trust the client-provided identity.
     socket.on("firebase-auth", async ({ idToken } = {}) => {
       // Admin not configured → no verification needed; let the client proceed.
       if (!adminConfigured) {
@@ -170,12 +185,11 @@ app.prepare().then(async () => {
       }
     });
 
-    // Shared enter logic: ensure the room exists in memory (loading from the DB
-    // if needed, e.g. after a restart), register the user, broadcast state.
+    // Shared create/join logic: load the room (from DB if needed), register the
+    // user, then broadcast the room state to everyone.
     async function enterRoom(sock, { roomKey, userName, userId, userPhoto, create }) {
-      // When Firebase Admin is configured, the verified identity on the socket
-      // is authoritative — the client can't spoof uid/name/photo. If it's
-      // configured but the client hasn't verified yet, reject the join.
+      // With Firebase Admin on, the verified identity is authoritative — the
+      // client can't spoof uid/name/photo. Require verification before joining.
       if (adminConfigured) {
         const v = sock.data.verified;
         if (!v) {
@@ -243,6 +257,8 @@ app.prepare().then(async () => {
 
     // New media uploaded
     socket.on("new-media", ({ roomKey, mediaItem }) => {
+      // Sanity-check the payload — never trust the client blindly.
+      if (!mediaItem || typeof mediaItem.id !== "string" || typeof mediaItem.url !== "string") return;
       if (rooms.has(roomKey)) {
         const room = rooms.get(roomKey);
         // Default to a staggered spot so new items don't land on top of each other
@@ -266,7 +282,7 @@ app.prepare().then(async () => {
     socket.on("media-move", ({ roomKey, mediaId, x, y }) => {
       if (rooms.has(roomKey)) {
         const item = rooms.get(roomKey).media.find((m) => m.id === mediaId);
-        if (item && typeof x === "number" && typeof y === "number") {
+        if (item && Number.isFinite(x) && Number.isFinite(y)) {
           item.position = {
             x: Math.max(0, Math.min(100, x)),
             y: Math.max(0, Math.min(100, y)),
@@ -277,7 +293,7 @@ app.prepare().then(async () => {
       }
     });
 
-    // Media playback broadcast (kept simple per-product decision)
+    // Playback sync — last action wins, kept deliberately simple.
     socket.on("media-play", ({ roomKey, mediaId, currentTime }) => {
       socket.to(roomKey).emit("media-play", { mediaId, currentTime, playedBy: socket.data.userName });
     });
@@ -319,11 +335,12 @@ app.prepare().then(async () => {
 
     // Chat messages
     socket.on("chat-message", ({ roomKey, message }) => {
+      if (typeof message !== "string" || !message.trim()) return;
       const chatMsg = {
-        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
         userId: socket.id,
         userName: socket.data.userName,
-        message,
+        message: message.trim().slice(0, 2000),
         timestamp: Date.now(),
       };
       io.to(roomKey).emit("chat-message", chatMsg);

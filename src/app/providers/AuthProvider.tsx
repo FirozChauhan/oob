@@ -68,9 +68,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [redirectError, setRedirectError] = useState<string | null>(null);
 
   useEffect(() => {
-    // `loading` is initialised to `firebaseEnabled`, so when Firebase isn't
-    // configured we're already not-loading. When it is, auth is guaranteed to
-    // be initialised on the client, so we only need to subscribe.
+    // loading starts as firebaseEnabled, so with Firebase off we're never
+    // loading; when it's on, auth is already initialised — just subscribe.
     if (!firebaseEnabled || !auth) return;
     const unsub = onAuthStateChanged(auth, (u: FbUser | null) => {
       if (u) {

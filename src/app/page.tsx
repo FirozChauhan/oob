@@ -99,7 +99,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col flex-1 items-center justify-center min-h-screen bg-[#0a0a0a] relative overflow-hidden">
+    <div className="flex flex-col flex-1 items-center justify-center min-h-screen auth-dots relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#ffffff] opacity-10 rounded-full blur-3xl" />
@@ -109,16 +109,11 @@ export default function Home() {
 
       <main className="relative z-10 flex flex-col items-center w-full max-w-md px-4">
         {/* Logo / Brand */}
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#ffffff] to-[#e0e0e0] mb-4 shadow-lg shadow-[#ffffff]/30 animate-pulse-glow">
-            <svg className="w-8 h-8 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-            </svg>
-          </div>
-          <h1 className="text-4xl font-bold text-white tracking-tight">
-            <span className="text-[#ffffff]">o</span>ob
+        <div className="mb-10 text-center">
+          <h1 className="text-7xl font-black text-white tracking-tight leading-none select-none">
+            oob
           </h1>
-          <p className="text-[#9c9c9c] mt-2 text-sm">
+          <p className="text-[#9c9c9c] mt-3 text-sm">
             Real-time media collaboration board
           </p>
         </div>
@@ -345,6 +340,16 @@ export default function Home() {
           </div>
         )}
       </main>
+
+      {/* Brand signature — bottom right corner */}
+      <span
+        dir="rtl"
+        className="signature-ruqaa text-2xl leading-none select-none fixed bottom-10 right-10"
+        title="فیروز خان چوہان"
+      >
+        <span className="signature-white">فیروز</span>
+        <span className="signature-gray"> خان چوہان</span>
+      </span>
     </div>
   );
 }
