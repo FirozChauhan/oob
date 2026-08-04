@@ -99,33 +99,33 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col flex-1 items-center justify-center min-h-screen bg-[#0f0f1a] relative overflow-hidden">
+    <div className="flex flex-col flex-1 items-center justify-center min-h-screen bg-[#0a0a0a] relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#6c5ce7] opacity-10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#00cec9] opacity-10 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#fd79a8] opacity-5 rounded-full blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-[#ffffff] opacity-10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[#d9d9d9] opacity-10 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#d9d9d9] opacity-5 rounded-full blur-3xl" />
       </div>
 
       <main className="relative z-10 flex flex-col items-center w-full max-w-md px-4">
         {/* Logo / Brand */}
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-[#6c5ce7] to-[#a29bfe] mb-4 shadow-lg shadow-[#6c5ce7]/30 animate-pulse-glow">
-            <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#ffffff] to-[#e0e0e0] mb-4 shadow-lg shadow-[#ffffff]/30 animate-pulse-glow">
+            <svg className="w-8 h-8 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
             </svg>
           </div>
           <h1 className="text-4xl font-bold text-white tracking-tight">
-            <span className="text-[#6c5ce7]">o</span>ob
+            <span className="text-[#ffffff]">o</span>ob
           </h1>
-          <p className="text-[#8888a0] mt-2 text-sm">
+          <p className="text-[#9c9c9c] mt-2 text-sm">
             Real-time media collaboration board
           </p>
         </div>
 
         {/* Connection Status */}
         {!isConnected && (
-          <div className="w-full mb-4 px-4 py-2.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-xs text-center flex items-center justify-center gap-2">
+          <div className="w-full mb-4 px-4 py-2.5 bg-[#ffffff]/5 border border-[#ffffff] text-[#cccccc] text-xs text-center flex items-center justify-center gap-2">
             <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -136,10 +136,10 @@ export default function Home() {
 
         {/* Auth gate — required when Firebase is configured */}
         {enabled && !user && (
-          <div className="w-full bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-6 mb-4 text-center">
+          <div className="w-full bg-[#131313] border border-[#d9d9d9] p-6 mb-4 text-center">
             {loading ? (
               <div className="flex justify-center py-4">
-                <div className="w-8 h-8 border-2 border-[#6c5ce7] border-t-transparent rounded-full animate-spin" />
+                <div className="w-8 h-8 border-2 border-[#ffffff] border-t-transparent rounded-full animate-spin" />
               </div>
             ) : (
               <>
@@ -152,11 +152,11 @@ export default function Home() {
                   </svg>
                 </div>
                 <h3 className="text-white font-semibold mb-1">Sign in to continue</h3>
-                <p className="text-[#8888a0] text-xs mb-4">Use your Google account to create or join a board</p>
+                <p className="text-[#9c9c9c] text-xs mb-4">Use your Google account to create or join a board</p>
                 <button
                   onClick={handleSignIn}
                   disabled={signInBusy}
-                  className="w-full py-3 px-4 bg-white text-gray-800 rounded-xl font-medium text-sm hover:bg-gray-100 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+                  className="w-full py-3 px-4 bg-white text-gray-800 font-medium text-sm hover:bg-gray-100 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" />
@@ -173,7 +173,7 @@ export default function Home() {
                 )}
                 <button
                   onClick={handleSignInRedirect}
-                  className="mt-3 text-[#8888a0] hover:text-white text-xs underline underline-offset-2"
+                  className="mt-3 text-[#9c9c9c] hover:text-white text-xs underline underline-offset-2"
                 >
                   Popup not working? Use redirect sign-in
                 </button>
@@ -184,21 +184,21 @@ export default function Home() {
 
         {/* Signed-in identity bar */}
         {enabled && user && (
-          <div className="w-full mb-4 flex items-center justify-between px-4 py-2.5 rounded-xl bg-[#1a1a2e] border border-[#2d2d4a]">
+          <div className="w-full mb-4 flex items-center justify-between px-4 py-2.5 bg-[#131313] border border-[#d9d9d9]">
             <div className="flex items-center gap-2.5 min-w-0">
               {user.photoURL ? (
                 <img src={user.photoURL} alt={user.name} className="w-7 h-7 rounded-full" />
               ) : (
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#6c5ce7] to-[#a29bfe] flex items-center justify-center text-[11px] font-bold text-white">
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#ffffff] to-[#e0e0e0] flex items-center justify-center text-[11px] font-bold text-black">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
               )}
               <div className="min-w-0">
                 <p className="text-white text-xs font-medium truncate">{user.name}</p>
-                {user.email && <p className="text-[#8888a0] text-[10px] truncate">{user.email}</p>}
+                {user.email && <p className="text-[#9c9c9c] text-[10px] truncate">{user.email}</p>}
               </div>
             </div>
-            <button onClick={() => signOut()} className="text-[#8888a0] hover:text-white text-xs px-2 py-1 rounded-lg hover:bg-[#252542] transition-all shrink-0">
+            <button onClick={() => signOut()} className="text-[#9c9c9c] hover:text-white text-xs px-2 py-1 hover:bg-[#1d1d1d] transition-all shrink-0">
               Sign out
             </button>
           </div>
@@ -206,23 +206,23 @@ export default function Home() {
 
         {/* Tab Switcher (hidden until signed in, when auth is on) */}
         {(!enabled || user) && (
-          <div className="w-full flex bg-[#1a1a2e] rounded-xl p-1 mb-6 border border-[#2d2d4a]">
+          <div className="w-full flex bg-[#131313] p-1 mb-6 border border-[#d9d9d9]">
             <button
               onClick={() => setActiveTab("create")}
-              className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`flex-1 py-2.5 px-4 text-sm font-medium transition-all duration-200 ${
                 activeTab === "create"
-                  ? "bg-[#6c5ce7] text-white shadow-lg shadow-[#6c5ce7]/30"
-                  : "text-[#8888a0] hover:text-white hover:bg-[#252542]"
+                  ? "bg-[#ffffff] text-black shadow-lg shadow-[#ffffff]/30"
+                  : "text-[#9c9c9c] hover:text-white hover:bg-[#1d1d1d]"
               }`}
             >
               Create Room
             </button>
             <button
               onClick={() => setActiveTab("join")}
-              className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`flex-1 py-2.5 px-4 text-sm font-medium transition-all duration-200 ${
                 activeTab === "join"
-                  ? "bg-[#00cec9] text-white shadow-lg shadow-[#00cec9]/30"
-                  : "text-[#8888a0] hover:text-white hover:bg-[#252542]"
+                  ? "bg-[#d9d9d9] text-black shadow-lg shadow-[#d9d9d9]/30"
+                  : "text-[#9c9c9c] hover:text-white hover:bg-[#1d1d1d]"
               }`}
             >
               Join Room
@@ -233,7 +233,7 @@ export default function Home() {
         {/* Name Input (only when not using Google auth) */}
         {needsName && (
           <div className="w-full mb-4">
-            <label className="block text-xs font-medium text-[#8888a0] mb-1.5 ml-1">
+            <label className="block text-xs font-medium text-[#9c9c9c] mb-1.5 ml-1">
               Your Name
             </label>
             <input
@@ -244,7 +244,7 @@ export default function Home() {
               onKeyDown={handleKeyDown}
               placeholder="Enter your display name..."
               maxLength={20}
-              className="w-full px-4 py-3 bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl text-white placeholder-[#8888a0]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#6c5ce7]/50 focus:border-[#6c5ce7] transition-all duration-200"
+              className="w-full px-4 py-3 bg-[#131313] border border-[#d9d9d9] text-white placeholder-[#9c9c9c]/50 text-sm focus:outline-none focus:ring-2 focus:ring-[#ffffff]/50 focus:border-[#ffffff] transition-all duration-200"
             />
           </div>
         )}
@@ -252,22 +252,22 @@ export default function Home() {
         {/* Create Room Panel */}
         {(!enabled || user) && activeTab === "create" && (
           <div className="w-full animate-fade-in">
-            <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-6 mb-4">
+            <div className="bg-[#131313] border border-[#d9d9d9] p-6 mb-4">
               <div className="text-center mb-4">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#6c5ce7]/10 mb-3">
-                  <svg className="w-6 h-6 text-[#6c5ce7]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#ffffff]/10 mb-3">
+                  <svg className="w-6 h-6 text-[#ffffff]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                   </svg>
                 </div>
                 <h3 className="text-white font-semibold">Create a New Board</h3>
-                <p className="text-[#8888a0] text-xs mt-1">
+                <p className="text-[#9c9c9c] text-xs mt-1">
                   A unique room key will be generated for sharing
                 </p>
               </div>
               <button
                 onClick={handleCreateRoom}
                 disabled={!isConnected || isCreating || !canProceed}
-                className="w-full py-3 px-4 bg-gradient-to-r from-[#6c5ce7] to-[#a29bfe] text-white rounded-xl font-medium text-sm hover:from-[#5a4bd1] hover:to-[#9288f0] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#6c5ce7]/20 hover:shadow-[#6c5ce7]/40"
+                className="w-full py-3 px-4 bg-[#ffffff] text-black font-medium text-sm hover:bg-[#cccccc] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#ffffff]/30"
               >
                 {isCreating ? (
                   <span className="flex items-center justify-center gap-2">
@@ -287,7 +287,7 @@ export default function Home() {
                 )}
               </button>
             </div>
-            <p className="text-[#8888a0] text-xs text-center">
+            <p className="text-[#9c9c9c] text-xs text-center">
               Share the generated key with anyone to collaborate in real-time
             </p>
           </div>
@@ -296,20 +296,20 @@ export default function Home() {
         {/* Join Room Panel */}
         {(!enabled || user) && activeTab === "join" && (
           <div className="w-full animate-fade-in">
-            <div className="bg-[#1a1a2e] border border-[#2d2d4a] rounded-xl p-6 mb-4">
+            <div className="bg-[#131313] border border-[#d9d9d9] p-6 mb-4">
               <div className="text-center mb-4">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#00cec9]/10 mb-3">
-                  <svg className="w-6 h-6 text-[#00cec9]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#d9d9d9]/10 mb-3">
+                  <svg className="w-6 h-6 text-[#d9d9d9]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
                   </svg>
                 </div>
                 <h3 className="text-white font-semibold">Join a Board</h3>
-                <p className="text-[#8888a0] text-xs mt-1">
+                <p className="text-[#9c9c9c] text-xs mt-1">
                   Enter the room key shared with you
                 </p>
               </div>
               <div className="mb-4">
-                <label className="block text-xs font-medium text-[#8888a0] mb-1.5 ml-1">
+                <label className="block text-xs font-medium text-[#9c9c9c] mb-1.5 ml-1">
                   Room Key
                 </label>
                 <input
@@ -323,7 +323,7 @@ export default function Home() {
                   onKeyDown={handleKeyDown}
                   placeholder="XXXX-XXXX"
                   maxLength={9}
-                  className="w-full px-4 py-3 bg-[#0f0f1a] border border-[#2d2d4a] rounded-xl text-white placeholder-[#8888a0]/50 text-sm text-center tracking-[0.2em] font-mono focus:outline-none focus:ring-2 focus:ring-[#00cec9]/50 focus:border-[#00cec9] transition-all duration-200 uppercase"
+                  className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#d9d9d9] text-white placeholder-[#9c9c9c]/50 text-sm text-center tracking-[0.2em] font-mono focus:outline-none focus:ring-2 focus:ring-[#d9d9d9]/50 focus:border-[#d9d9d9] transition-all duration-200 uppercase"
                 />
                 {joinError && (
                   <p className="text-red-400 text-xs mt-1.5 ml-1">{joinError}</p>
@@ -332,7 +332,7 @@ export default function Home() {
               <button
                 onClick={handleJoinRoom}
                 disabled={!isConnected || !joinKey.trim() || !canProceed}
-                className="w-full py-3 px-4 bg-gradient-to-r from-[#00cec9] to-[#55efc4] text-white rounded-xl font-medium text-sm hover:from-[#00b5b0] hover:to-[#45dba8] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#00cec9]/20 hover:shadow-[#00cec9]/40"
+                className="w-full py-3 px-4 bg-gradient-to-r from-[#d9d9d9] to-[#e6e6e6] text-black font-medium text-sm hover:from-[#b0b0b0] hover:to-[#c4c4c4] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[#d9d9d9]/20 hover:shadow-[#d9d9d9]/40"
               >
                 <span className="flex items-center justify-center gap-2">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -344,23 +344,6 @@ export default function Home() {
             </div>
           </div>
         )}
-
-        {/* Features */}
-        <div className="mt-8 grid grid-cols-3 gap-3 w-full max-w-sm">
-          {[
-            { icon: "🎥", label: "Videos" },
-            { icon: "🖼️", label: "Photos" },
-            { icon: "🎵", label: "Audio" },
-          ].map((feature) => (
-            <div
-              key={feature.label}
-              className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-[#1a1a2e]/50 border border-[#2d2d4a]/50"
-            >
-              <span className="text-lg">{feature.icon}</span>
-              <span className="text-[#8888a0] text-xs">{feature.label}</span>
-            </div>
-          ))}
-        </div>
       </main>
     </div>
   );

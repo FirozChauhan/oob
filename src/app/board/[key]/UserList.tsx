@@ -7,14 +7,14 @@ interface UserListProps {
 }
 
 const AVATAR_COLORS = [
-  "from-[#6c5ce7] to-[#a29bfe]",
-  "from-[#fd79a8] to-[#e84393]",
-  "from-[#00cec9] to-[#55efc4]",
-  "from-[#fdcb6e] to-[#e17055]",
-  "from-[#74b9ff] to-[#0984e3]",
-  "from-[#a29bfe] to-[#6c5ce7]",
-  "from-[#55efc4] to-[#00b894]",
-  "from-[#fd79a8] to-[#d63031]",
+  "from-[#ffffff] to-[#c9c9c9]",
+  "from-[#e3e3e3] to-[#8f8f8f]",
+  "from-[#d4d4d4] to-[#6f6f6f]",
+  "from-[#ffffff] to-[#a9a9a9]",
+  "from-[#d1d1d1] to-[#7c7c7c]",
+  "from-[#f0f0f0] to-[#b5b5b5]",
+  "from-[#cdcdcd] to-[#646464]",
+  "from-[#e8e8e8] to-[#9a9a9a]",
 ];
 
 export default function UserList({ users }: UserListProps) {
@@ -24,7 +24,7 @@ export default function UserList({ users }: UserListProps) {
         <h3 className="text-white text-xs font-semibold uppercase tracking-wider">
           Connected
         </h3>
-        <span className="text-[#8888a0] text-[10px] font-mono bg-[#252542] px-2 py-0.5 rounded-full">
+        <span className="text-[#9c9c9c] text-[10px] font-mono bg-[#1d1d1d] px-2 py-0.5 rounded-full">
           {users.length}
         </span>
       </div>
@@ -32,11 +32,11 @@ export default function UserList({ users }: UserListProps) {
         {users.map((user, index) => (
           <div
             key={user.id}
-            className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-[#252542] transition-all animate-slide-in"
+            className="flex items-center gap-2.5 px-2 py-1.5 hover:bg-[#1d1d1d] transition-all animate-slide-in"
             style={{ animationDelay: `${index * 50}ms` }}
           >
             <div
-              className={`w-7 h-7 rounded-full ${user.photoURL ? "" : `bg-gradient-to-br ${AVATAR_COLORS[index % AVATAR_COLORS.length]}`} flex items-center justify-center text-[11px] font-bold text-white shrink-0 overflow-hidden`}
+              className={`w-7 h-7 rounded-full ${user.photoURL ? "" : `bg-gradient-to-br ${AVATAR_COLORS[index % AVATAR_COLORS.length]}`} flex items-center justify-center text-[11px] font-bold text-black shrink-0 overflow-hidden`}
             >
               {user.photoURL ? (
                 <img src={user.photoURL} alt={user.name} className="w-full h-full object-cover" />
@@ -46,11 +46,11 @@ export default function UserList({ users }: UserListProps) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-white text-xs font-medium truncate">{user.name}</p>
-              <p className="text-[#8888a0] text-[9px]">
+              <p className="text-[#9c9c9c] text-[9px]">
                 {user.id === users[0]?.id ? "Host" : "Joined"}
               </p>
             </div>
-            <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+            <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
           </div>
         ))}
       </div>
