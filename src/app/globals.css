@@ -13,15 +13,40 @@
   --text-muted: #9c9c9c;
 }
 
-/* Arabic brand signature — force the font and its two-tone colors. */
+/* Arabic brand signature — Aref Ruqaa Ink is a COLR color font (its glyphs
+   paint with a built-in red ink palette and ignore CSS `color`), so we recolor
+   it via font-palette overrides. */
 .signature-ruqaa {
   font-family: "Aref Ruqaa Ink", serif !important;
 }
+
+@font-palette-values --ruqaa-white {
+  font-family: "Aref Ruqaa Ink";
+  override-colors:
+    0 #ffffff,
+    1 #ffffff,
+    2 #ffffff,
+    3 #ffffff,
+    4 #ffffff;
+}
+
+@font-palette-values --ruqaa-gray {
+  font-family: "Aref Ruqaa Ink";
+  override-colors:
+    0 #a8a8a8,
+    1 #a8a8a8,
+    2 #a8a8a8,
+    3 #a8a8a8,
+    4 #a8a8a8;
+}
+
 .signature-white {
   color: #ffffff !important;
+  font-palette: --ruqaa-white;
 }
 .signature-gray {
   color: #a8a8a8 !important;
+  font-palette: --ruqaa-gray;
 }
 
 @theme inline {
