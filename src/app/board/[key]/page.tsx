@@ -38,8 +38,10 @@ export default function BoardPage() {
   const [copied, setCopied] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadFileRef = useRef<(file: File) => Promise<void>>(async () => {});
   const [activeMediaType, setActiveMediaType] = useState<"all" | "image" | "video" | "audio">("all");
 
   // Listen for room events. This effect runs once per socket and never
@@ -200,42 +202,89 @@ export default function BoardPage() {
       }
     }
     try {
+      // 1) Read the file as base64 — progress 0–40%
       const base64 = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => resolve((reader.result as string).split(",")[1]);
         reader.onerror = () => reject(new Error("Failed to read file"));
+        reader.onprogress = (e) => {
+          if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 40));
+        };
         reader.readAsDataURL(file);
       });
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileName: file.name,
-          fileData: base64,
-          roomKey,
-          mediaType: type,
-          uploadedBy: userName || "anonymous",
-        }),
+      setUploadProgress(40);
+
+      // 2) POST via XHR so we get real upload progress — 40–100%
+      const uploaded = await new Promise<{ ok: boolean; data: any }>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/api/upload");
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable && e.total > 0) {
+            const pct = 40 + Math.round((e.loaded / e.total) * 60);
+            setUploadProgress(Math.min(99, pct));
+          }
+        };
+        xhr.onload = () => {
+          let data: any = null;
+          try {
+            data = JSON.parse(xhr.responseText);
+          } catch {
+            data = null;
+          }
+          resolve({ ok: xhr.status >= 200 && xhr.status < 300, data });
+        };
+        xhr.onerror = () => reject(new Error("Network error"));
+        xhr.send(
+          JSON.stringify({
+            fileName: file.name,
+            fileData: base64,
+            roomKey,
+            mediaType: type,
+            uploadedBy: userName || "anonymous",
+          })
+        );
       });
-      if (!response.ok && response.status === 0) throw new Error("Network error");
-      let data: any = null;
-      try {
-        data = await response.json();
-      } catch {
-        data = null;
+
+      if (!uploaded.ok || !uploaded.data?.success || !uploaded.data.mediaItem) {
+        throw new Error(uploaded.data?.error || "Upload failed");
       }
-      if (!response.ok) throw new Error(data?.error || "Upload failed");
-      if (data && data.success && data.mediaItem) {
-        handleUploadComplete(data.mediaItem);
-      } else {
-        throw new Error(data?.error || "Upload failed");
-      }
+      setUploadProgress(100);
+      handleUploadComplete(uploaded.data.mediaItem);
     } catch (err: any) {
       setUploadError(err.message || "Upload failed. Please try again.");
     } finally {
-      setIsUploading(false);
+      // Keep the full bar visible briefly, then reset for the next upload.
+      setTimeout(() => {
+        setIsUploading(false);
+        setUploadProgress(0);
+      }, 300);
     }
   };
+  // Keep a live reference so the paste listener always uses the latest uploadFile.
+  uploadFileRef.current = uploadFile;
+
+  // Paste-to-upload: paste an image (e.g. copied from Google) anywhere to upload it.
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.kind === "file" && item.type.startsWith("image/")) {
+          const file = item.getAsFile();
+          if (!file) continue;
+          e.preventDefault();
+          const ext = (item.type.split("/")[1] || "png").toLowerCase().replace("jpeg", "jpg");
+          const named = new File([file], `pasted-${Date.now()}.${ext}`, { type: file.type });
+          uploadFileRef.current(named);
+          break;
+        }
+      }
+    };
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, []);
 
   const handleDeleteMedia = (mediaId: string) => {
     if (socket) {
@@ -489,7 +538,7 @@ export default function BoardPage() {
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Media Type Filter */}
-          <div className="flex items-center gap-1 px-4 py-2 bg-[#131313]/50 border-b border-[#d9d9d9] shrink-0">
+          <div className="relative overflow-hidden flex items-center gap-1 px-4 py-2 bg-[#131313]/50 border-b border-[#d9d9d9] shrink-0">
             {[
               { type: "all" as const, label: "All" },
               { type: "image" as const, label: "Photos" },
@@ -529,6 +578,16 @@ export default function BoardPage() {
               )}
               {isUploading ? "Uploading..." : "Upload"}
             </button>
+
+            {/* Upload progress bar in this toolbar */}
+            {isUploading && (
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#1d1d1d]">
+                <div
+                  className="h-full bg-white transition-all duration-150"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            )}
           </div>
 
           {uploadError && (
