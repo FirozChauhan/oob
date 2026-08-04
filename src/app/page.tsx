@@ -9,7 +9,7 @@ import { generateRoomKey } from "@/lib/types";
 export default function Home() {
   const router = useRouter();
   const { isConnected, connectionError } = useSocket();
-  const { enabled, user, loading, signInWithGoogle, signInWithGoogleRedirect, redirectError, signOut } = useAuth();
+  const { enabled, user, loading, signInWithGoogle, signOut } = useAuth();
   const [joinKey, setJoinKey] = useState("");
   const [userName, setUserName] = useState("");
   const [activeTab, setActiveTab] = useState<"create" | "join">("create");
@@ -41,11 +41,6 @@ export default function Home() {
     } finally {
       setSignInBusy(false);
     }
-  };
-
-  const handleSignInRedirect = async () => {
-    setSignInError(null);
-    await signInWithGoogleRedirect();
   };
 
   const handleCreateRoom = () => {
@@ -161,17 +156,9 @@ export default function Home() {
                   </svg>
                   {signInBusy ? "Signing in..." : "Sign in with Google"}
                 </button>
-                {(signInError || redirectError) && (
-                  <p className="text-red-400 text-xs mt-3 break-words">
-                    {signInError || redirectError}
-                  </p>
+                {signInError && (
+                  <p className="text-red-400 text-xs mt-3 break-words">{signInError}</p>
                 )}
-                <button
-                  onClick={handleSignInRedirect}
-                  className="mt-3 text-[#9c9c9c] hover:text-white text-xs underline underline-offset-2"
-                >
-                  Popup not working? Use redirect sign-in
-                </button>
               </>
             )}
           </div>

@@ -74,8 +74,8 @@ authorized. Add it in two places:
    Client ID** → add the same origin to **Authorized JavaScript origins**, and
    `https://<auth-domain>/__/auth/handler` to **Authorized redirect URIs**
 
-The app surfaces the exact error and offers a redirect-based sign-in fallback,
-so a blocked popup never dead-ends.
+The app surfaces the exact error, so it's clear what needs fixing if the popup
+can't open.
 
 ### PostgreSQL (persistence)
 

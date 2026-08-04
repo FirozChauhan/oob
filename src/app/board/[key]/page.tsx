@@ -22,7 +22,7 @@ export default function BoardPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { socket, isConnected } = useSocket();
-  const { enabled: authEnabled, user: authUser, loading: authLoading, getIdToken, signInWithGoogle, signInWithGoogleRedirect, redirectError } = useAuth();
+  const { enabled: authEnabled, user: authUser, loading: authLoading, getIdToken, signInWithGoogle } = useAuth();
 
   const roomKey = params.key as string;
   const isCreating = searchParams.get("create") === "1";
@@ -391,15 +391,9 @@ export default function BoardPage() {
             </svg>
             Sign in with Google
           </button>
-          {(signInError || redirectError) && (
-            <p className="text-red-400 text-xs mt-3 break-words">{signInError || redirectError}</p>
+          {signInError && (
+            <p className="text-red-400 text-xs mt-3 break-words">{signInError}</p>
           )}
-          <button
-            onClick={async () => { setSignInError(null); await signInWithGoogleRedirect(); }}
-            className="mt-3 text-[#9c9c9c] hover:text-white text-xs underline underline-offset-2"
-          >
-            Popup not working? Use redirect sign-in
-          </button>
           <button onClick={() => router.push("/")} className="mt-3 block w-full text-center text-[#9c9c9c] hover:text-white text-xs">Back to home</button>
         </div>
       </div>
