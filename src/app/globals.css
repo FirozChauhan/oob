@@ -13,6 +13,17 @@
   --text-muted: #9c9c9c;
 }
 
+/* Arabic brand signature — force the font and its two-tone colors. */
+.signature-ruqaa {
+  font-family: "Aref Ruqaa Ink", serif !important;
+}
+.signature-white {
+  color: #ffffff !important;
+}
+.signature-gray {
+  color: #a8a8a8 !important;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

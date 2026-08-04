@@ -452,14 +452,27 @@ export default function BoardPage() {
             </svg>
           </button>
           <div>
-            <h1 className="text-white font-extrabold text-base leading-none tracking-wider select-none">
-              O.O.B
-            </h1>
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-white font-extrabold text-base leading-none tracking-wider select-none">
+                O.O.B
+              </h1>
+              <span className="text-[#9c9c9c] text-[9px] font-mono select-none">v1.2.1</span>
+            </div>
             <p className="text-[#9c9c9c] text-[10px] mt-1">{roomKey}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Brand signature */}
+          <span
+            dir="rtl"
+            className="signature-ruqaa text-xl leading-none select-none"
+            title="فیروز خان چوہان"
+          >
+            <span className="signature-white">فیروز</span>
+            <span className="signature-gray"> خان چوہان</span>
+          </span>
+
           {/* Connection indicator */}
           <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] ${
             isConnected ? "bg-[#ffffff]/10 text-[#e6e6e6]" : "bg-[#ffffff]/5 text-[#9c9c9c]"
