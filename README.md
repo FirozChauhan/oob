@@ -116,6 +116,6 @@ Made with the belief that collaboration shouldn't require an account.
 
 ---
 
-<div align="center">
+<div align="left">
   <font face="Aref Ruqaa" size="5">فیروز خان چوہان</font>
 </div>
