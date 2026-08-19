@@ -16,6 +16,12 @@
 
 ---
 
+<img width="1883" height="957" alt="image" src="https://github.com/user-attachments/assets/f0ea1cd7-ae84-4b69-980a-c43014d10b83" />
+<br><br>
+<img width="1901" height="971" alt="image" src="https://github.com/user-attachments/assets/5199fd66-1712-4bd1-958d-5e13878d4ba0" />
+
+
+
 ## Why this project exists
 
 Most "collaboration" apps force everyone through signups, accounts, and setup before you can do anything. I wanted the opposite: **one key, no friction** — the way a physical whiteboard already works. You hand someone an 8-character key and a shared media board appears for everyone. The result is an architecture that has to *gracefully degrade* and stay *responsive under continuous event traffic* — which is where most of the interesting engineering lives.
